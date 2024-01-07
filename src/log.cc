@@ -27,23 +27,23 @@ void Logger::log(LogLevel::Level level, LogEvent::ptr event) {
 }
 
 void Logger::debug(LogEvent::ptr event) {
-    debug(LogLevel::DEBUG, event);
+    log(LogLevel::DEBUG, event);
 }
 
 void Logger::info(LogEvent::ptr event) {
-    debug(LogLevel::INFO, event);
+    log(LogLevel::INFO, event);
 }
 
 void Logger::warn(LogEvent::ptr event) {
-    debug(LogLevel::WARN, event);
+    log(LogLevel::WARN, event);
 }
 
 void Logger::error(LogEvent::ptr event) {
-    debug(LogLevel::ERROR, event);
+    log(LogLevel::ERROR, event);
 }
 
 void Logger::fatal(LogEvent::ptr event) {
-    debug(LogLevel::FATAL, event);
+    log(LogLevel::FATAL, event);
 }
 
 }
