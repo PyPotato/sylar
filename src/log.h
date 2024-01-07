@@ -4,6 +4,8 @@
 #include <string>
 #include <memory>
 #include <list>
+#include <sstream>
+#include <fstream>
 
 namespace sylar {
 
@@ -48,9 +50,13 @@ public:
     typedef std::shared_ptr<LogAppender> ptr;
     virtual ~LogAppender()  {}
 
-    void log(LogLevel::Level level, LogEvent::ptr event);
-private:
+    virtual void log(LogLevel::Level level, LogEvent::ptr event) = 0;
+
+    void setFormatter(LogFormatter::ptr val)    { m_formatter = val;}
+    LogFormatter::ptr getFormatter() const  { return m_formatter;}
+protected:
     LogLevel::Level m_level;
+    LogFormatter::ptr m_formatter;
 };
 
 
@@ -80,10 +86,22 @@ private:
 
 // 输出到控制台的 Appender
 class StdoutLogAppender : public LogAppender {
+public:
+    typedef std::shared_ptr<StdoutLogAppender> ptr;
+    virtual void log(LogLevel::Level level, LogEvent::ptr event) override;
 };
 
 // 输出到文件的 Appender
 class FileLogAppender : public LogAppender {
+public:
+    typedef std::shared_ptr<FileLogAppender> ptr;
+    FileLogAppender(const std::string filename);
+    virtual void log(LogLevel::Level level, LogEvent::ptr event) override;
+
+    bool reopen();
+private:
+    std::string m_filename;
+    std::ofstream m_filestream;
 };
 
 }
