@@ -3,6 +3,7 @@
 #include <map>
 #include <functional>
 #include <time.h>
+#include <stdarg.h>
 
 namespace sylar {
 
@@ -33,8 +34,25 @@ LogEventWrap::LogEventWrap(LogEvent::ptr e)
 LogEventWrap::~LogEventWrap() {
     m_event->getLogger()->log(m_event->getLevel(), m_event);
 }
+
 std::stringstream& LogEventWrap::getSS() {
     return m_event->getSS();
+}
+
+void LogEvent::format(const char* fmt, ...) {
+    va_list al;
+    va_start(al, fmt);
+    format(fmt, al);
+    va_end(al);
+}
+
+void LogEvent::format(const char* fmt, va_list al) {
+    char* buf = nullptr;
+    int len = vasprintf(&buf, fmt, al);
+    if (len != -1) {
+        m_ss << std::string(buf, len);
+        free(buf);
+    }
 }
 
 class MessageFormatItem : public LogFormatter::FormatItem {
@@ -65,7 +83,7 @@ class NameFormatItem : public LogFormatter::FormatItem {
 public:
     NameFormatItem (const std::string& str = "")  {}
     void format(std::ostream& os, std::shared_ptr<Logger> logger, LogLevel::Level level, LogEvent::ptr event) override {
-        os << logger->getName();
+        os << event->getLogger()->getName();
     }
 };
 
@@ -213,7 +231,9 @@ void Logger::fatal(LogEvent::ptr event) {
     log(LogLevel::FATAL, event);
 }
 
-FileLogAppender::FileLogAppender(const std::string filename) : m_filename(filename) {
+FileLogAppender::FileLogAppender(const std::string filename)
+    : m_filename(filename) {
+        reopen();
 }
 
 void FileLogAppender::log(Logger::ptr logger, LogLevel::Level level, LogEvent::ptr event) {

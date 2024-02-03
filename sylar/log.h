@@ -28,6 +28,17 @@
  * @brief 使用格式化方式将日志级别level的日志写入到logger
  */
 
+#define SYLAR_LOG_FMT_LEVEL(logger, level, fmt, ...) \
+    if (logger->getLevel() <= level) \
+        sylar::LogEventWrap(sylar::LogEvent::ptr(new sylar::LogEvent(logger, level, \
+                        __FILE__, __LINE__, 0, sylar::GetThreadId(), \
+                sylar::GetCoroutineId(), time(0)))).getEvent()->format(fmt, __VA_ARGS__)
+
+#define SYLAR_LOG_FMT_DEBUG(logger, fmt, ...) SYLAR_LOG_FMT_LEVEL(logger, sylar::LogLevel::DEBUG, fmt, __VA_ARGS__)
+#define SYLAR_LOG_FMT_INFO(logger, fmt, ...) SYLAR_LOG_FMT_LEVEL(logger, sylar::LogLevel::INFO, fmt, __VA_ARGS__)
+#define SYLAR_LOG_FMT_WARN(logger, fmt, ...) SYLAR_LOG_FMT_LEVEL(logger, sylar::LogLevel::WARN, fmt, __VA_ARGS__)
+#define SYLAR_LOG_FMT_ERROR(logger, fmt, ...) SYLAR_LOG_FMT_LEVEL(logger, sylar::LogLevel::ERROR, fmt, __VA_ARGS__)
+#define SYLAR_LOG_FMT_FATAL(logger, fmt, ...) SYLAR_LOG_FMT_LEVEL(logger, sylar::LogLevel::FATAL, fmt, __VA_ARGS__)
 
 namespace sylar {
 
@@ -66,7 +77,10 @@ public:
 
 
     std::stringstream& getSS()  { return m_ss;}
+
+    
     void format(const char* fmt, ...);
+    void format(const char* fmt, va_list al);
 private:
     const char* m_file = nullptr;   // 文件名号
     int32_t m_line = 0;             //行号
@@ -85,6 +99,7 @@ public:
     LogEventWrap(LogEvent::ptr e);
     ~LogEventWrap();
     std::stringstream& getSS();
+    LogEvent::ptr getEvent() const { return m_event;}
 private:
     LogEvent::ptr m_event;
 };
@@ -120,6 +135,9 @@ public:
 
     void setFormatter(LogFormatter::ptr val)    { m_formatter = val;}
     LogFormatter::ptr getFormatter() const  { return m_formatter;}
+
+    LogLevel::Level getLevel() const { return m_level;}
+    void setLevel(LogLevel::Level val)  { m_level = val;}
 protected:
     LogLevel::Level m_level = LogLevel::DEBUG;
     LogFormatter::ptr m_formatter;
